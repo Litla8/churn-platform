@@ -1,0 +1,30 @@
+feature,importance
+num__is_month_to_month,0.44710192
+cat__contract_Month-to-month,0.11010107
+cat__internet_service_Fiber optic,0.084032185
+cat__internet_service_DSL,0.041966427
+cat__tech_support_No,0.037095055
+cat__online_security_No,0.032990485
+cat__payment_method_Electronic check,0.025026958
+cat__paperless_billing_Yes,0.02029472
+cat__internet_service_No,0.018255526
+num__tenure,0.01488187
+cat__contract_Two year,0.014562952
+cat__tech_support_Yes,0.014093242
+cat__tech_support_No internet service,0.01275925
+cat__paperless_billing_No,0.012501289
+num__total_charges,0.010978016
+cat__contract_One year,0.01016619
+num__avg_monthly_spend,0.009945357
+num__monthly_charges,0.0090858685
+num__senior_citizen,0.009007592
+cat__partner_Yes,0.008630586
+cat__online_security_Yes,0.007996167
+cat__dependents_Yes,0.0076485714
+num__charge_gap,0.0072018905
+cat__payment_method_Credit card (automatic),0.0071041887
+cat__payment_method_Bank transfer (automatic),0.0070435414
+cat__payment_method_Mailed check,0.006895512
+cat__dependents_No,0.006693352
+cat__partner_No,0.0059402636
+cat__online_security_No internet service,0.0

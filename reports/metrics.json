@@ -1,0 +1,33 @@
+{
+  "best_model": "xgboost",
+  "threshold": 0.29,
+  "test_roc_auc": 0.8321,
+  "test_pr_auc": 0.6563,
+  "test_precision": 0.5173,
+  "test_recall": 0.7464,
+  "test_f1": 0.6111,
+  "confusion_matrix": [
+    [
+      582,
+      195
+    ],
+    [
+      71,
+      209
+    ]
+  ],
+  "comparison": [
+    {
+      "model": "logistic_regression",
+      "val_roc_auc": 0.8351
+    },
+    {
+      "model": "random_forest",
+      "val_roc_auc": 0.8355
+    },
+    {
+      "model": "xgboost",
+      "val_roc_auc": 0.8378
+    }
+  ]
+}
