@@ -146,41 +146,41 @@ Tenure chart order: the tenure bars appear as 0-11, 12-23, 48+, 24-47, because p
                   width="stretch")
 
 ## screenshots streamlit app
-![streamlit app overview tab](<Screenshot 2026-10-01 165641.png>)
-![streamlit app overview tab](<Screenshot 2026-10-01 163006.png>)
-![streamlit app predict tab](<Screenshot 2026-10-01 164428.png>)
-![Telecom Intelligence Customer Platform.segments tab](<Screenshot 2026-10-01 163029.png>)
-![Telecom Intelligence Customer Platform. high-risk customers tab](<Screenshot 2026-10-01 163018.png>)
+![streamlit app overview tab](docs/screenshots/streamlit-app-overview-tab.png)
+![streamlit app overview tab](docs/screenshots/streamlit-app-overview-tab1.png)
+![streamlit app predict tab](docs/screenshots/streamlit-app-predict-tab.png)
+![Telecom Intelligence Customer Platform.segments tab](docs/screenshots/Telecom-Intelligence-Customer-Platform-segments-tab.png)
+![Telecom Intelligence Customer Platform. high-risk customers tab](docs/screenshots/Telecom-Intelligence-Customer-Platform-high-risk-customers-tab.png)
 
 ## screenshots MLFLOW BROWSER
-![welcome to MLFlow](<Screenshot 2026-10-01 131310.png>)
-![overview1](<Screenshot 2026-10-01 131438.png>)
-![overview2](<Screenshot 2026-10-01 131446.png>)
-![Runs page](<Screenshot 2026-10-01 131651.png>)
-![BEST-xgboost](<Screenshot 2026-10-01 131717.png>)
-![xgboost](<Screenshot 2026-10-01 131727.png>)
-![random_forest](<Screenshot 2026-10-01 131735.png>)
-![logistic_regression](<Screenshot 2026-10-01 131746.png>)
+![welcome to MLFlow](docs/screenshots/welcome-to-MLFlow.png)
+![overview1](docs/screenshots/overview1.png)
+![overview2](docs/screenshots/overview2.png)
+![Runs page](docs/screenshots/runs-page.png)
+![BEST-xgboost](docs/screenshots/BEST-xgboost.png)
+![xgboost](docs/screenshots/xgboost.png)
+![random_forest](docs/screenshots/random-forest.png)
+![logistic_regression](docs/screenshots/logistic-regression.png)
 
 ## http://127.0.0.1:8000/health
-![{"status":"ok","model_loaded":true,"model_version":"xgboost-202610011245"}](<Screenshot 2026-10-01 132138.png>)
+![{"status":"ok","model_loaded":true,"model_version":"xgboost-202610011245"}](docs/screenshots/model-version.png)
 
 ## MYSQL screenshots
-![churn_scores](<Screenshot 2026-10-01 172100.png>)
-![customer_segments](<Screenshot 2026-10-01 172110.png>)
-![customers](<Screenshot 2026-10-01 172119.png>)
-![prediction_log](<Screenshot 2026-10-01 172130.png>)
+![churn_scores](docs/screenshots/churn-scores.png)
+![customer_segments](docs/screenshots/customer-segments.png)
+![customers](docs/screenshots/customers.png)
+![prediction_log](docs/screenshots/prediction-log.png)
 
 ## Run sql/analysis_queries.sql and write one insight each
-![1 Churn % by contract](<Screenshot 2026-10-01 172822.png>)
+![1 Churn % by contract](docs/screenshots/1-Churn-percentage-by-contract.png)
 1. **Churn by contract:** Month-to-month customers churn at 42.7% (3,875 customers), versus 11.3% on one-year and 2.8% on two-year contracts, so contract length is the strongest churn signal.
-![2 Monthly revenue of churned customers](<Screenshot 2026-10-01 173120.png>)
+![2 Monthly revenue of churned customers](docs/screenshots/2-Monthly-revenue-of-churned-customers.png)
 2. **Revenue at risk:** Customers who churned represent 139,130.85 in lost monthly recurring revenue (about 1.67M annualised).
-![3 Top 20 high-risk, high-value customers](<Screenshot 2026-10-01 173319.png>)
+![3 Top 20 high-risk, high-value customers](docs/screenshots/3-Top-20-high-risk-high-value-customers.png)
 3. **Retention call list:** The 20 highest-value high-risk customers are all month-to-month, pay 104.65 to 110.10 per month, and have churn probabilities of 0.71 to 0.91.
-![4 RANK() window function by contract](<Screenshot 2026-10-01 173436.png>)
+![4 RANK() window function by contract](docs/screenshots/4-rank-window-function-by-contract.png.png)
 4. **Bill ranking (window function):** RANK() OVER (PARTITION BY contract) ranks all 7,043 customers within their contract type; the highest month-to-month bill is 117.45 (customer 2302-ANTDP), and equal bills share a rank.
-![5 API usage by day](<Screenshot 2026-10-01 173613.png>)
+![5 API usage by day](docs/screenshots/5-API-usage-by-day.png)
 5. **API monitoring:** prediction_log recorded 2 predictions on 2026-10-01 with an average churn probability of 0.573 (my manual test calls through Swagger).
 
 ## Docker Setup runned and tested successfully
