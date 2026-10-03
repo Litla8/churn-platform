@@ -178,7 +178,7 @@ Tenure chart order: the tenure bars appear as 0-11, 12-23, 48+, 24-47, because p
 2. **Revenue at risk:** Customers who churned represent 139,130.85 in lost monthly recurring revenue (about 1.67M annualised).
 ![3 Top 20 high-risk, high-value customers](docs/screenshots/3-Top-20-high-risk-high-value-customers.png)
 3. **Retention call list:** The 20 highest-value high-risk customers are all month-to-month, pay 104.65 to 110.10 per month, and have churn probabilities of 0.71 to 0.91.
-![4 RANK() window function by contract](docs/screenshots/4-rank-window-function-by-contract.png.png)
+![4 RANK() window function by contract](docs/screenshots/4-rank-window-function-by-contract.png)
 4. **Bill ranking (window function):** RANK() OVER (PARTITION BY contract) ranks all 7,043 customers within their contract type; the highest month-to-month bill is 117.45 (customer 2302-ANTDP), and equal bills share a rank.
 ![5 API usage by day](docs/screenshots/5-API-usage-by-day.png)
 5. **API monitoring:** prediction_log recorded 2 predictions on 2026-10-01 with an average churn probability of 0.573 (my manual test calls through Swagger).
