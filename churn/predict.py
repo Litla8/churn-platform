@@ -2,11 +2,13 @@
 
 Run batch scoring:  python -m churn.predict
 """
+from pathlib import Path
+
 import joblib
 import pandas as pd
 
 from churn.config import MODEL_PATH
-from churn.db import get_engine
+from churn.db import churn_scores, replace_table
 from churn.features import ALL_FEATURES, add_features, load_customers
 from churn.logger import get_logger
 
@@ -18,7 +20,7 @@ def risk_band(p: float) -> str:
 
 
 class ChurnModel:
-    def __init__(self, path=MODEL_PATH):
+    def __init__(self, path: Path = MODEL_PATH) -> None:
         bundle = joblib.load(path)
         self.pipeline = bundle["pipeline"]
         self.threshold = bundle["threshold"]
@@ -43,8 +45,7 @@ def score_all() -> int:
     scores = model.predict_df(df)
     result = pd.concat([df[["customer_id", "contract", "monthly_charges", "tenure"]], scores], axis=1)
     result["model_version"] = model.version
-    result.to_sql("churn_scores", get_engine(), if_exists="replace", index=False,
-                  chunksize=500, method="multi")
+    replace_table(result, churn_scores)
     log.info("Scored %d customers -> table churn_scores (%d high risk)",
              len(result), (result["risk_band"] == "High").sum())
     return len(result)

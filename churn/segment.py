@@ -8,7 +8,7 @@ from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
 
 from churn.config import REPORTS_DIR
-from churn.db import get_engine
+from churn.db import customer_segments, replace_table
 from churn.features import load_customers
 from churn.logger import get_logger
 
@@ -16,7 +16,7 @@ log = get_logger("segment")
 COLS = ["tenure", "monthly_charges", "total_charges"]
 
 
-def run(k_range=range(2, 7)) -> pd.DataFrame:
+def run(k_range: range = range(2, 7)) -> pd.DataFrame:
     df = load_customers()
     data = df[COLS].fillna(0)
     X = StandardScaler().fit_transform(data)
@@ -42,9 +42,7 @@ def run(k_range=range(2, 7)) -> pd.DataFrame:
     df["segment_label"] = df["segment_id"].map(labels)
     prof["segment_label"] = prof.index.map(labels)
 
-    df[["customer_id", "segment_id", "segment_label"]].to_sql(
-        "customer_segments", get_engine(), if_exists="replace", index=False,
-        chunksize=500, method="multi")
+    replace_table(df[["customer_id", "segment_id", "segment_label"]], customer_segments)
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     prof.to_csv(REPORTS_DIR / "segment_profile.csv")
     print(prof.to_string())
