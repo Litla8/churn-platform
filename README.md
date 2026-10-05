@@ -1,10 +1,38 @@
 # Telecom Customer Intelligence Platform
 
-End-to-end data science project: **MySQL -> ETL -> feature engineering -> model comparison (MLflow) -> segmentation -> batch scoring -> FastAPI -> Streamlit dashboard -> Docker -> CI**.
+![CI](https://github.com/Litla8/churn-platform/actions/workflows/ci.yml/badge.svg)
 
-**Business problem:** Telecom company ko pata hona chahiye kaun sa customer churn karega, kitna revenue risk me hai, aur customers ke kaun se segments hain, taaki retention team sahi logon ko target kare.
+End-to-end data science project: **MySQL -> ETL -> feature engineering -> model comparison (MLflow) -> customer segmentation -> batch scoring -> FastAPI -> Streamlit dashboard -> Docker -> CI -> cloud deployment**.
+
+**Live demo:** [Streamlit dashboard](https://churn-platform-h9ypys68boc5n5zeempy2l.streamlit.app/)
+
+> The demo reads from a free-tier cloud MySQL (Aiven) that powers off when idle. If the dashboard shows a database error, the database is asleep. The screenshots below show every tab.
+
+## Business problem
+
+A telecom company wants to know which customers are likely to leave (churn), how much recurring revenue is at risk, and which customer groups exist, so the retention team can contact the right people first.
+
+## Results
+
+Dataset: Kaggle "Telco Customer Churn", 7,043 customers, 26.5% churn rate. Split 70/15/15 (train/validation/test), stratified.
+
+| Model | Validation ROC-AUC |
+|---|---|
+| Logistic Regression | 0.8351 |
+| Random Forest | 0.8355 |
+| XGBoost (selected) | 0.8378 |
+
+Test set: ROC-AUC 0.8321 | Precision 0.517 | Recall 0.746 (decision threshold tuned on the validation set to maximise F1).
+
+| Business finding | Result |
+|---|---|
+| Churn by contract | Month-to-month 42.7%, one-year 11.3%, two-year 2.8% |
+| Customer segments (KMeans, k=2) | Short-tenure / low-bill: 31% churn. Long-tenure / high-bill: 17% churn |
+| High-risk customers | 676 of 7,043 (9.6%) scored 0.70 or higher |
+| Revenue already lost | 139,130.85 in monthly recurring revenue from churned customers (no currency in the dataset) |
 
 ## Architecture
+
 ```
 CSV / Kaggle  --ingest-->  MySQL (customers)
                               |
@@ -17,178 +45,156 @@ CSV / Kaggle  --ingest-->  MySQL (customers)
 ```
 
 ## Tech stack
-Python, Pandas, NumPy, SQLAlchemy, **MySQL**, scikit-learn, XGBoost, KMeans, MLflow, FastAPI, Pydantic, Streamlit, Plotly, pytest, Docker, GitHub Actions.
 
-## Setup (Windows)
-1. Install: Python 3.11+, MySQL Server 8 (mysql.com/downloads/installer), VS Code, Git.
-2. MySQL install karte waqt root password yaad rakho.
-3. Project folder me terminal kholo:
+Python, Pandas, NumPy, SQLAlchemy, **MySQL**, scikit-learn, XGBoost, KMeans, MLflow, FastAPI, Pydantic, Streamlit, Plotly, pytest, Docker, GitHub Actions, Aiven (managed MySQL), Streamlit Community Cloud.
+
+## Screenshots
+
+### Dashboard (Streamlit)
+
+![Dashboard overview](docs/screenshots/streamlit-app-overview-tab.png)
+![Dashboard charts and model evaluation](docs/screenshots/streamlit-app-overview-tab1.png)
+![High-risk customers tab](docs/screenshots/Telecom-Intelligence-Customer-Platform-high-risk-customers-tab.png)
+![Segments tab](docs/screenshots/Telecom-Intelligence-Customer-Platform-segments-tab.png)
+![Single-customer prediction tab](docs/screenshots/streamlit-app-predict-tab.png)
+
+### Experiment tracking (MLflow)
+
+![MLflow runs](docs/screenshots/runs-page.png)
+![MLflow best model run](docs/screenshots/BEST-xgboost.png)
+![MLflow experiment overview](docs/screenshots/overview1.png)
+![MLflow experiment comparison](docs/screenshots/overview2.png)
+
+### API (FastAPI)
+
+![API health check](docs/screenshots/model-version.png)
+
+### MySQL tables
+
+![customers table](docs/screenshots/customers.png)
+![churn_scores table](docs/screenshots/churn-scores.png)
+![customer_segments table](docs/screenshots/customer-segments.png)
+![prediction_log table](docs/screenshots/prediction-log.png)
+
+## SQL analysis (`sql/analysis_queries.sql`)
+
+1. **Churn by contract:** month-to-month customers churn at 42.7% (3,875 customers), versus 11.3% on one-year and 2.8% on two-year contracts, so contract length is the strongest churn signal.
+
+   ![Churn by contract](docs/screenshots/1-Churn-percentage-by-contract.png)
+
+2. **Revenue at risk:** customers who churned represent 139,130.85 in lost monthly recurring revenue (about 1.67M annualised).
+
+   ![Monthly revenue of churned customers](docs/screenshots/2-Monthly-revenue-of-churned-customers.png)
+
+3. **Retention call list:** the 20 highest-value high-risk customers are all month-to-month, pay 104.65 to 110.10 per month, and have churn probabilities of 0.71 to 0.91.
+
+   ![Top 20 high-risk, high-value customers](docs/screenshots/3-Top-20-high-risk-high-value-customers.png)
+
+4. **Bill ranking (window function):** `RANK() OVER (PARTITION BY contract ORDER BY monthly_charges DESC)` ranks all 7,043 customers within their contract type; equal bills share a rank.
+
+   ![RANK window function by contract](docs/screenshots/4-rank-window-function-by-contract.png)
+
+5. **API monitoring:** `prediction_log` stores every API prediction (date, count, average churn probability) for monitoring.
+
+   ![API usage by day](docs/screenshots/5-API-usage-by-day.png)
+
+## Quick start (Windows)
+
+1. Install Python 3.12, MySQL Server 8, VS Code and Git.
+2. In the project folder:
+
 ```bash
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
-copy .env.example .env        # phir .env me MYSQL_PASSWORD apna daalo
+copy .env.example .env        # then set MYSQL_PASSWORD in .env
 ```
-4. (Optional) MySQL me check karo: `mysql -u root -p` -> `SHOW DATABASES;` (database `churn_db` code khud bana dega, ya `sql/schema.sql` run karo).
-5. Dataset: Kaggle se "Telco Customer Churn" download karo, `data/raw/telco_churn.csv` naam se rakho. Na ho to code synthetic data (same schema) khud bana leta hai.
 
-## Run (order me)
+3. Dataset: download "Telco Customer Churn" from Kaggle and save it as `data/raw/telco_churn.csv` (not committed to Git). Without it, the code generates synthetic data with the same schema.
+
+Run in order:
+
 ```bash
 python -m churn.ingest      # CSV -> MySQL
-python -m churn.train       # models compare, best save, reports/ banti hai
+python -m churn.train       # compare models, save the best, write reports/
 python -m churn.segment     # KMeans segments -> MySQL
-python -m churn.predict     # sab customers ka churn score -> MySQL
+python -m churn.predict     # score all customers -> MySQL
 mlflow ui --backend-store-uri sqlite:///mlflow.db     # http://127.0.0.1:5000
 uvicorn churn.api:app --reload                        # http://127.0.0.1:8000/docs
 streamlit run dashboard/app.py                        # http://localhost:8501
-pytest                                                # tests
-```
-Test API:
-```bash
-curl -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -d "{\"tenure\":3,\"monthly_charges\":95.5,\"total_charges\":286.5,\"contract\":\"Month-to-month\",\"internet_service\":\"Fiber optic\",\"payment_method\":\"Electronic check\"}"
+pytest                                                # 7 tests
 ```
 
-## Docker (MySQL + API + Dashboard)
+Test the API from PowerShell:
+
+```powershell
+$body = '{"tenure":3,"monthly_charges":95.5,"total_charges":286.5,"contract":"Month-to-month","internet_service":"Fiber optic","payment_method":"Electronic check"}'
+Invoke-RestMethod -Uri http://127.0.0.1:8000/predict -Method Post -ContentType "application/json" -Body $body
+```
+
+## Docker (MySQL + API + dashboard)
+
 ```bash
-python -m churn.train           # pehle model bana lo (models/ folder image me copy hota hai)
+python -m churn.train           # the model file in models/ is copied into the image
 docker compose up --build -d
 docker compose run --rm api python -m churn.ingest
-docker compose run --rm api python -m churn.predict
 docker compose run --rm api python -m churn.segment
+docker compose run --rm api python -m churn.predict
 ```
-"Docker's MySQL is published on host port 3307 to avoid clashing with a local MySQL on 3306."
-API: localhost:8000/docs | Dashboard: localhost:8501
 
-## Results (apne run ke numbers yahan paste karo)
-   | Model | Val ROC-AUC |
-   |---|---|
-   | Logistic Regression | 0.8351 |
-   | Random Forest | 0.8355 |
-   | XGBoost | 0.8378 |
+API: http://localhost:8000/docs | Dashboard: http://localhost:8501. Docker's MySQL is published on host port 3307 so it does not clash with a local MySQL on port 3306.
 
-   Test: ROC-AUC 0.8321 | Precision 0.517 | Recall 0.746 (threshold tuned on validation set).
+## Cloud deployment
 
-## Key design decisions (interview ke liye)
-- **Train / validation / test split** (70/15/15): model aur threshold validation pe chune, test sirf final report ke liye, isse leakage nahi.
-- **Pipeline + ColumnTransformer**: preprocessing model ke saath save hoti hai, serving me skew nahi.
-- **Ek hi `add_features()`** training, batch scoring aur API me.
-- **Threshold tuning**: 0.5 default nahi, F1 maximise kiya (business cost ke hisaab se recall badha sakte ho).
-- **MySQL** source of truth; API predictions `prediction_log` me store hoti hain (monitoring).
-- **Tests + CI**: API contract, validation errors, sanity (risky customer > loyal customer).
+- **Database:** Aiven for MySQL (free plan, MySQL 8.4). SSL is required, and the service enforces `sql_require_primary_key`, so every table (including the scoring and segment tables) is defined in `churn/db.py` with a primary key.
+- **Dashboard:** Streamlit Community Cloud, deployed from this repository (`dashboard/app.py`). The connection string is stored as the `DATABASE_URL` secret and never committed. The Aiven CA certificate (public) is in `certs/`.
+- **Connection:** `DATABASE_URL` overrides the local `MYSQL_*` settings:
 
-## Deploy
-- Dashboard: Streamlit Community Cloud (public cloud MySQL chahiye: Aiven free MySQL ya TiDB Cloud free tier; credentials `st.secrets` / env me).
-- API: Render (Docker) + same cloud MySQL. Free tier sleep hota hai.
-- Free tier limits badalti rehti hain, deploy se pehle current docs dekh lena.
+```
+mysql+pymysql://USER:PASSWORD@HOST:PORT/churn_db?ssl_ca=certs/aiven-ca.pem
+```
 
-## python -m churn.train
-Training worked. Your churn rate is 26.5%, which matches the standard Kaggle dataset, and all three models scored about the same:
+- **Loading the cloud database** from a local terminal, with `DATABASE_URL` set for that window only:
 
-Model	Validation ROC-AUC
-Logistic Regression	0.8351
-Random Forest	0.8355
-XGBoost (best)	0.8378
+```bash
+set "DATABASE_URL=mysql+pymysql://USER:PASSWORD@HOST:PORT/churn_db?ssl_ca=C:/path/to/aiven-ca.pem"
+python -m churn.ingest
+python -m churn.segment
+python -m churn.predict
+```
 
-## Best line
-num__is_month_to_month	0.44710192
+The FastAPI service runs locally and in Docker Compose; it is not hosted publicly.
 
-## Segment
- |  k=2 silhouette=0.480
- | k=3 silhouette=0.450
- | k=4 silhouette=0.470
- | k=5 silhouette=0.447
- | k=6 silhouette=0.439
- | Chosen k = 2
-            customers  avg_tenure  avg_monthly  churn_rate                 segment_label
-segment_id
-0                2361       56.85        89.76        0.17  Long-tenure / High-bill (#0)
-1                4682       20.03        52.16        0.31  Short-tenure / Low-bill (#1)
-## Predict
-predict | Scored 7043 customers -> table churn_scores (676 high risk)
+## Key design decisions
 
-## Key Points From Segment, Predict
-Segments: silhouette picked k=2, which gives two clear groups. The long-tenure, high-bill group (2,361 customers, about 57 months, $89.76 average bill) churns at 17%. The short-tenure, low-bill group (4,682 customers, about 20 months, $52.16 average bill) churns at 31%. That is a clean business story: newer, lower-spending customers leave most.
-A caveat to mention in interviews: k=2 won by a small margin (0.480, versus 0.470 for k=4). Two segments is a coarse split. If you want more actionable groups for the retention team, k=4 is a defensible alternative.
-Scoring: 676 of 7,043 customers (about 9.6%) are in the High risk band (churn probability of 0.70 or more).
-## SQL QUERY ANLAYSIS
-risk_band, customers, avg_prob
-High	676	    0.794
-Medium	1324	0.549
-Low	    5043	0.119
+- **Train / validation / test split (70/15/15):** the model and the decision threshold were chosen on validation data; the test set is used only for the final report, which avoids leakage.
+- **Pipeline + ColumnTransformer:** preprocessing is saved with the model, so serving cannot drift from training.
+- **One `add_features()`** is used by training, batch scoring and the API.
+- **Threshold tuning:** 0.5 is not assumed; the threshold maximises F1 on validation data, and can be moved toward recall depending on business cost.
+- **MySQL as the source of truth;** API predictions are stored in `prediction_log` for monitoring.
+- **Tests and CI:** API contract, validation errors, and a sanity check (a risky customer scores higher than a loyal one) run on every push.
 
-## Risky customer test (same Swagger page)
-curl -X 'POST' \
-  'http://127.0.0.1:8000/predict' \
-  -H 'accept: */*' \
-  -H 'Content-Type: application/json' \
-  -d '  {
-  "customer_id": "TEST-RISKY",
-  "tenure": 3,
-  "monthly_charges": 95.5,
-  "total_charges": 286.5,
-  "contract": "Month-to-month",
-  "internet_service": "Fiber optic",
-  "payment_method": "Electronic check"
-}'
+## Limitations and next steps
 
-## Check that predictions were logged
-id,     created_at,         customer_id,    churn_probability,  risk_band,  model_version
-2	    2026-10-01 16:20:33	TEST-RISKY	    0.8654	            High	    xgboost-202610011245
-1	    2026-10-01 13:22:38	string	        0.2799	            Low	        xgboost-202610011245
+- The three models score within 0.003 ROC-AUC of each other, so the choice of XGBoost is a small margin.
+- `is_month_to_month` and `contract_Month-to-month` encode the same information and split the importance; one should be dropped.
+- KMeans with k=2 gives coarse segments (silhouette 0.480, versus 0.470 for k=4); k=4 may be more actionable.
+- The dashboard's Predict tab fills fields it does not ask for with defaults, so its score can differ slightly from the batch score.
+- Next: SHAP explanations, drift monitoring from `prediction_log`, hyperparameter tuning (Optuna), scheduled batch scoring, a limited-privilege database user for the hosted app.
 
-## Things worth knowing for your README and interviews:
+## Project structure
 
-Duplicate top features: in the "Top 10 features" chart, num__is_month_to_month and cat__contract_Month-to-month carry the same information, so they split the importance between them. Both come from the contract column. A good interview answer is: "Month-to-month contract is the dominant churn driver; the two features are redundant encodings, and I'd drop one in a cleanup."
-Tenure chart order: the tenure bars appear as 0-11, 12-23, 48+, 24-47, because plotly orders them by first appearance. To fix it, in dashboard/app.py change the tenure chart call to:
-  st.plotly_chart(px.bar(by_tenure, x="tenure_band", y="churn_pct",
-                         title="Churn % by tenure (months)",
-                         category_orders={"tenure_band": ["0-11", "12-23", "24-47", "48+"]}),
-                  width="stretch")
-
-## screenshots streamlit app
-![streamlit app overview tab](docs/screenshots/streamlit-app-overview-tab.png)
-![streamlit app overview tab](docs/screenshots/streamlit-app-overview-tab1.png)
-![streamlit app predict tab](docs/screenshots/streamlit-app-predict-tab.png)
-![Telecom Intelligence Customer Platform.segments tab](docs/screenshots/Telecom-Intelligence-Customer-Platform-segments-tab.png)
-![Telecom Intelligence Customer Platform. high-risk customers tab](docs/screenshots/Telecom-Intelligence-Customer-Platform-high-risk-customers-tab.png)
-
-## screenshots MLFLOW BROWSER
-![welcome to MLFlow](docs/screenshots/welcome-to-MLFlow.png)
-![overview1](docs/screenshots/overview1.png)
-![overview2](docs/screenshots/overview2.png)
-![Runs page](docs/screenshots/runs-page.png)
-![BEST-xgboost](docs/screenshots/BEST-xgboost.png)
-![xgboost](docs/screenshots/xgboost.png)
-![random_forest](docs/screenshots/random-forest.png)
-![logistic_regression](docs/screenshots/logistic-regression.png)
-
-## http://127.0.0.1:8000/health
-![{"status":"ok","model_loaded":true,"model_version":"xgboost-202610011245"}](docs/screenshots/model-version.png)
-
-## MYSQL screenshots
-![churn_scores](docs/screenshots/churn-scores.png)
-![customer_segments](docs/screenshots/customer-segments.png)
-![customers](docs/screenshots/customers.png)
-![prediction_log](docs/screenshots/prediction-log.png)
-
-## Run sql/analysis_queries.sql and write one insight each
-![1 Churn % by contract](docs/screenshots/1-Churn-percentage-by-contract.png)
-1. **Churn by contract:** Month-to-month customers churn at 42.7% (3,875 customers), versus 11.3% on one-year and 2.8% on two-year contracts, so contract length is the strongest churn signal.
-![2 Monthly revenue of churned customers](docs/screenshots/2-Monthly-revenue-of-churned-customers.png)
-2. **Revenue at risk:** Customers who churned represent 139,130.85 in lost monthly recurring revenue (about 1.67M annualised).
-![3 Top 20 high-risk, high-value customers](docs/screenshots/3-Top-20-high-risk-high-value-customers.png)
-3. **Retention call list:** The 20 highest-value high-risk customers are all month-to-month, pay 104.65 to 110.10 per month, and have churn probabilities of 0.71 to 0.91.
-![4 RANK() window function by contract](docs/screenshots/4-rank-window-function-by-contract.png)
-4. **Bill ranking (window function):** RANK() OVER (PARTITION BY contract) ranks all 7,043 customers within their contract type; the highest month-to-month bill is 117.45 (customer 2302-ANTDP), and equal bills share a rank.
-![5 API usage by day](docs/screenshots/5-API-usage-by-day.png)
-5. **API monitoring:** prediction_log recorded 2 predictions on 2026-10-01 with an average churn probability of 0.573 (my manual test calls through Swagger).
-
-## Docker Setup runned and tested successfully
-python -m churn.train
-docker compose up --build -d
-docker compose run --rm api python -m churn.ingest
-docker compose run --rm api python -m churn.predict
-docker compose run --rm api python -m churn.segment
+```
+churn/        config, db, ingest, features, train, predict, segment, api
+dashboard/    Streamlit app
+sql/          schema.sql, analysis_queries.sql
+tests/        pytest suite (features, API)
+notebooks/    EDA notebook
+docs/         screenshots
+certs/        Aiven CA certificate (public)
+models/       trained model
+reports/      metrics, charts
+```
 
 
 
