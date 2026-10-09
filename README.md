@@ -1,6 +1,6 @@
 # Telecom Customer Intelligence Platform
 
-![CI](https://github.com/Litla8/churn-platform/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/Litla8/churn-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/Litla8/churn-platform/actions/workflows/ci.yml)
 
 End-to-end data science project: **MySQL -> ETL -> feature engineering -> model comparison (MLflow) -> customer segmentation -> batch scoring -> FastAPI -> Streamlit dashboard -> Docker -> CI -> cloud deployment**.
 
